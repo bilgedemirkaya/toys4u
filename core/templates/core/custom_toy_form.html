@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+{% block title %}Create Custom Toy – Toys4U{% endblock %}
+
+{% block content %}
+<h2>Create Your Custom Toy</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <button type="submit">Submit Custom Request</button>
+</form>
+{% endblock %}

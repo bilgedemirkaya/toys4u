@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Toys4U{% endblock %}</title>
+    <style>
+        body { font-family: Arial; background: #f0f0f0; margin: 0; padding: 0; }
+        header { background-color: #4CAF50; color: white; padding: 16px; text-align: center; font-size: 26px; font-weight: bold; }
+        nav { background: #333; padding: 10px; text-align: center; }
+        nav a {
+            color: white; text-decoration: none;
+            margin: 0 12px; font-weight: bold;
+        }
+        nav a:hover { text-decoration: underline; }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        img { max-width: 150px; border-radius: 8px; margin-bottom: 20px; }
+        h2 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+
+        h4 {
+            margin-top: 20px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header> 🧸 Toys4U</header>
+
+<nav>
+    <a href="/profile/">Profile</a>
+    <a href="/order-toy/">Order Toy</a>
+    <a href="/logout/">Logout</a>
+</nav>
+
+<div class="container">
+    {% block content %}
+    {% endblock %}
+</div>
+
+</body>
+</html>
