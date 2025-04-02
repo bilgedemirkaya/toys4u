@@ -7,7 +7,7 @@ def require_role(role_name):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return HttpResponseForbidden("Login required.")
-            if not request.user.userrole_set.filter(role__role_name=role_name).exists():
+            if not request.user.roles.filter(role__role_name=role_name).exists():
                 return HttpResponseForbidden(f"You need the '{role_name}' role.")
             return view_func(request, *args, **kwargs)
         return wrapper

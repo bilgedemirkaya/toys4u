@@ -41,7 +41,7 @@ class Role(models.Model):
         return self.get_role_name_display()
 
 class UserRole(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='roles')
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     granted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='granted_roles')
     assigned_at = models.DateTimeField(auto_now_add=True)
@@ -96,12 +96,10 @@ class Order(models.Model):
     is_customized = models.BooleanField(default=False)
     specification = models.TextField(blank=True, null=True, help_text="Custom specifications for the order")
     status = models.CharField(max_length=20, default='Draft')
+    cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
-
-    def total_cost(self):
-        return sum(item.toy.cost_of_production for item in self.orderitem_set.all())
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -142,9 +140,10 @@ class Payment(models.Model):
 # -------------------------------
 
 class ProductionReport(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    toy = models.ForeignKey(Toy, on_delete=models.CASCADE, null=True)
     expert = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='reports_written')
     report_text = models.TextField()
+    status = models.CharField(max_length=20, default='Draft')
     validated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='reports_validated')
     validation_date = models.DateField(blank=True, null=True)
 

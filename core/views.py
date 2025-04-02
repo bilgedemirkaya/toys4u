@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm, AddressForm, CustomToyForm
+from .forms import CustomUserCreationForm, AddressForm, CustomToyForm, ProductionReportForm, ToyEditForm, ReviewForm
 from .models import Address, User, UserContactDetail, Role, UserRole, Staff, ToyType, Toy, Order, OrderItem, Review, Complaint, Payment, ProductionReport
 from django import forms
 from django.utils import timezone
@@ -72,23 +72,41 @@ def login(request):
 @login_required
 def logout_view(request):
     logout(request)
+
     return redirect('login')
 
 @login_required
 def profile(request):
     orders = Order.objects.filter(user=request.user).exclude(status='Draft').order_by('-order_date')
     contact_details = UserContactDetail.objects.get(user=request.user)
-    return render(request, 'core/profile.html', {'orders': orders, 'user': request.user, 'contact_details': contact_details})
+
+    try:
+        staff = Staff.objects.get(user=request.user)
+    except Staff.DoesNotExist:
+        staff = None
+
+    return render(request, 'core/profile.html', {
+        'orders': orders,
+        'user': request.user,
+        'contact_details': contact_details,
+        'staff': staff
+    })
 
 
 @login_required
 def toy_list(request):
     toys_regular = Toy.objects.filter(is_customized=False)
-    toys_custom = Toy.objects.filter(is_customized=True, customized_by=request.user)
+    toys_custom = Toy.objects.filter(is_customized=True)
+
+    try:
+        staff = Staff.objects.get(user=request.user)
+    except Staff.DoesNotExist:
+        staff = None
 
     return render(request, 'core/toys.html', {
         'toys_regular': toys_regular,
-        'toys_custom': toys_custom
+        'toys_custom': toys_custom,
+        'staff': staff
     })
 
 @login_required
@@ -163,6 +181,7 @@ def place_order(request, order_id):
 
     if request.method == 'POST':
         order.status = "Placed"
+        order.cost = sum(item.toy.price * item.quantity for item in order.orderitem_set.all())
         order.order_date = timezone.now()
         order.save()
         return redirect('profile')
@@ -196,15 +215,15 @@ def staff_list(request):
     staff_role = Role.objects.get(role_name='staff')
     admin_role = Role.objects.get(role_name='administrator')
 
-    staff_users = User.objects.filter(userrole__role=staff_role).distinct()
-    admin_users = User.objects.filter(userrole__role=admin_role).distinct()
-
+    staff_users = User.objects.filter(roles__role=staff_role).distinct()
+    admin_users = User.objects.filter(roles__role=admin_role).distinct()
+    admin_roles = UserRole.objects.filter(role=admin_role).select_related('user', 'granted_by')
 
     return render(request, 'core/staff_list.html', {
         'staff_users': staff_users,
         'admin_users': admin_users,
+        'admin_roles': admin_roles
     })
-
 
 @require_role('administrator')
 def grant_admin(request, user_id):
@@ -233,18 +252,73 @@ def revoke_admin(request, user_id):
 
     return redirect('staff_list')
 
-@require_staff_type('manager')
-def manage_orders(request):
-    # TODO
-    return
-
 @require_staff_type('production_expert')
-def submit_production_report(request):
-    # TODO
-    return
+def production_report(request, toy_id):
+    if request.method == 'POST':
+        form = ProductionReportForm(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.expert = request.user
+            report.save()
+            messages.success(request, "Production report submitted successfully.")
+            return redirect('profile')
+    else:
+        toy = get_object_or_404(Toy, id=toy_id)
+        form = ProductionReportForm(initial={'toy': toy})
 
-@require_role('administrator')
-def validate_reports(request):
-    # TODO
-    return
+    return render(request, 'core/production_report.html', {'form': form, toy: toy})
 
+@login_required
+@require_role('staff')
+def production_reports_list(request):
+    all_reports = ProductionReport.objects.select_related('toy', 'expert', 'validated_by')
+
+    is_manager = request.user.staff.staff_type == 'manager'
+
+    if request.method == 'POST' and is_manager:
+        report_id = request.POST.get('report_id')
+        report = ProductionReport.objects.get(id=report_id)
+        report.status = 'Approved'
+        report.validated_by = request.user
+        report.validation_date = timezone.now()
+        report.save()
+
+    return render(request, 'core/reports.html', {
+        'reports': all_reports,
+        'is_manager': is_manager
+    })
+
+@login_required
+def edit_toy(request, toy_id):
+    toy = get_object_or_404(Toy, id=toy_id)
+
+    if request.method == 'POST':
+        form = ToyEditForm(request.POST, request.FILES, instance=toy)
+        if form.is_valid():
+            form.save()
+            return redirect('toy_list')
+    else:
+        form = ToyEditForm(instance=toy)
+
+    return render(request, 'core/edit_toy.html', {'form': form, 'toy': toy})
+
+@login_required
+def leave_review(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user, status='Placed')
+
+    if hasattr(order, 'review'):
+        messages.warning(request, "You already submitted a review for this order.")
+        return redirect('profile')
+
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.order = order
+            review.save()
+            messages.success(request, "Thank you for your review!")
+            return redirect('profile')
+    else:
+        form = ReviewForm()
+
+    return render(request, 'core/leave_review.html', {'form': form, 'order': order})

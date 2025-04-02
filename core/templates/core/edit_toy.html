@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+{% block title %}Edit Toy – {{ toy.name }}{% endblock %}
+
+{% block content %}
+<h2>Edit Toy – {{ toy.name }}</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Changes</button>
+</form>
+
+<a href="{% url 'toy_list' %}" style="display: inline-block; margin-top: 20px;">← Back to Toys</a>
+{% endblock %}

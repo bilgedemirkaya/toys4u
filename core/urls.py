@@ -21,4 +21,8 @@ urlpatterns = [
     path('staff-list/', views.staff_list, name='staff_list'),
     path('grant-admin/<int:user_id>/', views.grant_admin, name='grant_admin'),
     path('staff/revoke-admin/<int:user_id>/', views.revoke_admin, name='revoke_admin'),
+    path('staff/production-report/<int:toy_id>/', views.production_report, name='production_report'),
+    path('staff/reports/', views.production_reports_list, name='production_reports_list'),
+    path('staff/edit-toy/<int:toy_id>/', views.edit_toy, name='edit_toy'),
+    path('order/<int:order_id>/review/', views.leave_review, name='leave_review'),
 ]

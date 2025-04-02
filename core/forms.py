@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Address, ProductionReport, ToyType
+from .models import User, Address, ProductionReport, ToyType, Toy, Review
 
 class AddressForm(forms.ModelForm):
     class Meta:
@@ -32,7 +32,24 @@ class CustomToyForm(forms.Form):
 class ProductionReportForm(forms.ModelForm):
     class Meta:
         model = ProductionReport
-        fields = ['order', 'report_text']
+        fields = ['toy', 'report_text']
         widgets = {
             'report_text': forms.Textarea(attrs={'placeholder': 'Describe quality, condition, packaging, etc...'})
+        }
+
+class ToyEditForm(forms.ModelForm):
+    class Meta:
+        model = Toy
+        fields = ['name', 'type', 'picture', 'size', 'cost_of_production', 'rating', 'specification', 'price']
+        widgets = {
+            'specification': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comments']
+        widgets = {
+            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'comments': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Your feedback...'})
         }

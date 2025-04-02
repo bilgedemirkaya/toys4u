@@ -3,7 +3,6 @@
 
 {% block content %}
 <div style="max-width: 900px; margin: 30px auto;">
-
     <!-- Top Section: Profile Pic + Info -->
     <div style="display: flex; align-items: center; gap: 20px;">
         <!-- Profile Pic -->
@@ -17,21 +16,26 @@
 
         <!-- Info -->
         <div>
-            <h4>{{ user.first_name }} {{ user.last_name }} - {{ user.username }}</h4>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-
-            {% with roles=user.userrole_set.all %}
-                {% for role in roles %}
-                    {% if role.role.role_name == 'administrator' %}
-                        <span style="background-color: darkred; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Admin</span>
-                        <a href="{% url 'staff_list' %}" style="display: inline-block; margin-top: 10px; padding: 8px 12px; border-radius: 4px; text-decoration: none;">
-                            ⚙️
-                        </a>
-                    {% elif role.role.role_name == 'staff' %}
+            <h4>{{ user.first_name }} {{ user.last_name }} - {{ user.username }}
+            {% with rolesObjects=user.roles.all %}
+            {% for roleObject in rolesObjects %}
+                {% if roleObject.role.role_name == 'administrator' %}
+                    <span style="background-color: darkred; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Admin</span>
+                    <a href="{% url 'staff_list' %}" style="display: inline-block; margin-top: 10px; padding: 8px 12px; border-radius: 4px; text-decoration: none;">
+                        ⚙️
+                    </a>
+                {% elif roleObject.role.role_name == 'staff' %}
+                    {% if staff.staff_type == 'regular_staff' %}
                         <span style="background-color: #555; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Staff</span>
+                    {% elif staff.staff_type == 'production_expert' %}
+                        <span style="background-color: #555; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Production Expert</span>
+                        {% elif staff.staff_type == 'manager' %}
+                        <span style="background-color: #555; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Manager</span>
                     {% endif %}
-                {% endfor %}
-            {% endwith %}
+                {% endif %}
+            {% endfor %}
+        {% endwith %}</h4>
+            <p><strong>Email:</strong> {{ user.email }}</p>
         </div>
     </div>
 
@@ -68,15 +72,32 @@
                 </tr>
             </thead>
             <tbody>
-            {% for order in orders %}
-                <tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 10px;">{{ order.id }}</td>
-                    <td style="padding: 10px;">{{ order.order_date|date:"Y-m-d" }}</td>
-                    <td style="padding: 10px;">{{ order.orderitem_set.count }}</td>
-                    <td style="padding: 10px;">{{ order.status }}</td>
-                    <td style="padding: 10px;">${{ order.total_cost }}</td>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.order_date|date:"Y-m-d" }}</td>
+                    <td>{{ order.orderitem_set.count }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>${{ order.cost }}</td>
+                    <!-- Review Section -->
+                    <td>
+                        {% if order.status == 'Placed' and order.review %}
+                            {% with order.review.rating as rating %}
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= rating %}
+                                        ⭐
+                                    {% else %}
+                                        ☆
+                                    {% endif %}
+                                {% endfor %}
+                            {% endwith %}
+                        {% elif order.status == 'Placed' %}
+                            <a href="{% url 'leave_review' order.id %}">Leave Review</a>
+                        {% endif %}
+                    </td>
+
                 </tr>
-            {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
 

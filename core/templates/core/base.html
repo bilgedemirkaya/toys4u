@@ -82,7 +82,7 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
             animation: fadeOut 3s forwards;
         }
-        
+
         .toast-warning { background: #e67e22; }
         .toast-error { background: #e74c3c; }
         .toast-success { background: #2ecc71; }
@@ -113,8 +113,17 @@
     <a href="/profile/">Profile</a>
     <a href="/toys/">Toys</a>
     <a href="/cart/">Cart</a>
-    <a href="/logout/">Logout</a>
+{% if is_staff %}
+    <a href="/staff/reports/">Reports</a>
+{% endif %}
+{% if is_admin %}
+    <a href="/staff-list/">Manage Staff</a>
+{% endif %}
+<a href="/logout/">Logout</a>
+
 </nav>
+
+
 {% else %}
 <nav>
     <a href="/login/">Login</a>

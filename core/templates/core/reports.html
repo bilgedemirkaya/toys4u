@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block title %}Production Reports – Toys4U{% endblock %}
+
+{% block content %}
+<h2>🧾 Production Reports</h2>
+
+{% if reports %}
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <thead>
+        <tr style="background-color: #eee;">
+            <th style="padding: 10px;">Toy</th>
+            <th style="padding: 10px;">Report Text</th>
+            <th style="padding: 10px;">Expert</th>
+            <th style="padding: 10px;">Status</th>
+            <th style="padding: 10px;">Validated By</th>
+            {% if is_manager %}<th style="padding: 10px;">Actions</th>{% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr style="border-bottom: 1px solid #ccc;">
+            <td style="padding: 10px;">{{ report.toy.name }}</td>
+            <td style="padding: 10px;">{{ report.report_text }}</td>
+            <td style="padding: 10px;">{{ report.expert.username }}</td>
+            <td style="padding: 10px;">{{ report.status }}</td>
+            <td style="padding: 10px;">{{ report.validated_by.username|default:"—" }}</td>
+            {% if is_manager %}
+            <td style="padding: 10px;">
+                {% if report.status == 'Draft' %}
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="report_id" value="{{ report.id }}">
+                    <button type="submit" style="padding: 6px 10px;">✅ Approve</button>
+                </form>
+                {% else %}
+                <span style="color: green;">Approved</span>
+                {% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color: gray;">No production reports found.</p>
+{% endif %}
+{% endblock %}

@@ -37,7 +37,12 @@
                         <button style="padding: 6px 10px;">Grant Admin</button>
                     </form>
                 {% else %}
-                    <span style="color: gray;">Already Admin</span>
+                    <form method="POST" action="{% url 'revoke_admin' user.id %}">
+                    {% csrf_token %}
+                    <button style="padding: 6px 10px; background-color: #e74c3c; color: white; border: none; border-radius: 4px;">
+                        Revoke Admin
+                    </button>
+                </form>
                 {% endif %}
             </td>
         </tr>
@@ -62,16 +67,12 @@
         </tr>
     </thead>
     <tbody>
-    {% for user in admin_users %}
-        <tr style="border-bottom: 1px solid #ccc;">
-            <td style="padding: 10px;">{{ user.username }}</td>
-            <td style="padding: 10px;">{{ user.email }}</td>
-            <td style="padding: 10px;">
-                    {{ role.granted_by.username|default:"—" }}
-            </td>
-            <td style="padding: 10px;">
-                    {{ role.assigned_at|date:"Y-m-d H:i" }}
-            </td>
+        {% for role in admin_roles %}
+        <tr>
+            <td style="padding: 10px;">{{ role.user.username }}</td>
+            <td style="padding: 10px;">{{ role.user.email }}</td>
+            <td style="padding: 10px;">{{ role.granted_by.username|default:"—" }}</td>
+            <td style="padding: 10px;">{{ role.assigned_at|date:"Y-m-d H:i" }}</td>
         </tr>
     {% endfor %}
     </tbody>
