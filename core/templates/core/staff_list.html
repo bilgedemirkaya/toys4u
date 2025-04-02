@@ -1,0 +1,83 @@
+{% extends 'core/base.html' %}
+{% block title %}Manage Staff – Toys4U{% endblock %}
+
+{% block content %}
+<h2 style="margin-top: 30px;">👷 Staff Members</h2>
+
+{% if staff_users %}
+<table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+    <thead>
+        <tr style="background-color: #eee;">
+            <th style="padding: 10px;">Username</th>
+            <th style="padding: 10px;">Email</th>
+            <th style="padding: 10px;">Staff Type</th>
+            <th style="padding: 10px;">Is admin</th>
+            <th style="padding: 10px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for user in staff_users %}
+        <tr style="border-bottom: 1px solid #ccc;">
+            <td style="padding: 10px;">{{ user.username }}</td>
+            <td style="padding: 10px;">{{ user.email }}</td>
+            <td style="padding: 10px;">
+                {{ user.staff.get_staff_type_display|default:"—" }}
+            </td>
+            <td style="padding: 10px;">
+                {% if user in admin_users %}
+                    ✅
+                {% else %}
+                    ❌
+                {% endif %}
+            </td>
+            <td style="padding: 10px;">
+                {% if user not in admin_users %}
+                    <form method="POST" action="{% url 'grant_admin' user.id %}">
+                        {% csrf_token %}
+                        <button style="padding: 6px 10px;">Grant Admin</button>
+                    </form>
+                {% else %}
+                    <span style="color: gray;">Already Admin</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color: gray;">No staff members yet.</p>
+{% endif %}
+
+
+<h2 style="margin-top: 50px;">👑 Administrators</h2>
+
+{% if admin_users %}
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="background-color: #eee;">
+            <th style="padding: 10px;">Username</th>
+            <th style="padding: 10px;">Email</th>
+            <th style="padding: 10px;">Granted By</th>
+            <th style="padding: 10px;">Assigned At</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for user in admin_users %}
+        <tr style="border-bottom: 1px solid #ccc;">
+            <td style="padding: 10px;">{{ user.username }}</td>
+            <td style="padding: 10px;">{{ user.email }}</td>
+            <td style="padding: 10px;">
+                    {{ role.granted_by.username|default:"—" }}
+            </td>
+            <td style="padding: 10px;">
+                    {{ role.assigned_at|date:"Y-m-d H:i" }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color: gray;">No administrators assigned yet.</p>
+{% endif %}
+
+{% endblock %}

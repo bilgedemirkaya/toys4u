@@ -1,19 +1,94 @@
 {% extends 'core/base.html' %}
-
-{% block title %}My Profile – Toys4U{% endblock %}
+{% block title %}Profile – Toys4U{% endblock %}
 
 {% block content %}
-    <h2>Welcome, {{ user.first_name }}!</h2>
+<div style="max-width: 900px; margin: 30px auto;">
 
-    {% if user.profile_pic %}
-        <img src="{{ user.profile_pic.url }}" alt="Profile Picture" style="max-width: 150px; border-radius: 8px;">
+    <!-- Top Section: Profile Pic + Info -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <!-- Profile Pic -->
+        {% if user.profile_pic %}
+            <img src="{{ user.profile_pic.url }}" alt="Profile Picture" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+        {% else %}
+            <div style="width: 120px; height: 120px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">
+                No Photo
+            </div>
+        {% endif %}
+
+        <!-- Info -->
+        <div>
+            <h4>{{ user.first_name }} {{ user.last_name }} - {{ user.username }}</h4>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+
+            {% with roles=user.userrole_set.all %}
+                {% for role in roles %}
+                    {% if role.role.role_name == 'administrator' %}
+                        <span style="background-color: darkred; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Admin</span>
+                        <a href="{% url 'staff_list' %}" style="display: inline-block; margin-top: 10px; padding: 8px 12px; border-radius: 4px; text-decoration: none;">
+                            ⚙️
+                        </a>
+                    {% elif role.role.role_name == 'staff' %}
+                        <span style="background-color: #555; color: white; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 6px;">Staff</span>
+                    {% endif %}
+                {% endfor %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <!-- Address Section -->
+        <h3 style="margin-top: 30px;">🏡 Address</h3>
+        {% if contact_details.address %}
+            <p>{{ contact_details.address.street }}, {{ contact_details.address.city }}</p>
+            <p>{{ contact_details.address.postal_code }}, {{ contact_details.address.country }}</p>
+        {% else %}
+            <p style="color: gray;">No address provided.</p>
+        {% endif %}
+
+        <!-- Contact Section -->
+        <h3 style="margin-top: 30px;">📞 Contact</h3>
+        {% if contact_details.phone_number %}
+            <p>Phone: {{ contact_details.phone_number }}</p>
+        {% else %}
+            <p style="color: gray;">No phone number provided.</p>
+        {% endif %}
+
+        <!-- Order History Section -->
+        <h3 style="margin-top: 4 0px;">📦 Order History</h3>
+
+        {% if orders %}
+        <table style="width: 100%; border-collapse: collapse; box-shadow: 0 0 10px rgba(0,0,0,0.05); margin-top: 20px;">
+            <thead>
+                <tr style="background-color: #eee;">
+                    <th style="padding: 12px; text-align: left;">Order #</th>
+                    <th style="padding: 12px; text-align: left;">Date</th>
+                    <th style="padding: 12px; text-align: left;">Items</th>
+                    <th style="padding: 12px; text-align: left;">Status</th>
+                    <th style="padding: 12px; text-align: left;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for order in orders %}
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">{{ order.id }}</td>
+                    <td style="padding: 10px;">{{ order.order_date|date:"Y-m-d" }}</td>
+                    <td style="padding: 10px;">{{ order.orderitem_set.count }}</td>
+                    <td style="padding: 10px;">{{ order.status }}</td>
+                    <td style="padding: 10px;">${{ order.total_cost }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        {% if else %}
+            <p style="color: gray;">No past orders yet.</p>
+        {% endif %}
+    </div>
+    {% else %}
+        <p style="color: gray;">No past orders yet.</p>
     {% endif %}
 
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Full Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-
-    {% if user.address %}
-        <p><strong>Address:</strong> {{ user.address.street }}, {{ user.address.city }}, {{ user.address.postal_code }}, {{ user.address.country }}</p>
-    {% endif %}
+</div>
 {% endblock %}
+
+

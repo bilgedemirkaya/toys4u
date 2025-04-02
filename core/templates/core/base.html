@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Toys4U{% endblock %}</title>
     <style>
         body { font-family: Arial; background: #f0f0f0; margin: 0; padding: 0; }
@@ -64,17 +65,62 @@
         label {
             font-weight: bold;
         }
+
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: #4caf50;
+            color: white;
+            padding: 12px 18px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            animation: fadeOut 3s forwards;
+        }
+        
+        .toast-warning { background: #e67e22; }
+        .toast-error { background: #e74c3c; }
+        .toast-success { background: #2ecc71; }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+</style>
+
     </style>
 </head>
 <body>
 
-<header> 🧸 Toys4U</header>
+<header>🧸 Toys4U</header>
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast toast-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
 
+
+{% if user.is_authenticated %}
 <nav>
     <a href="/profile/">Profile</a>
-    <a href="/order-toy/">Order Toy</a>
+    <a href="/toys/">Toys</a>
+    <a href="/cart/">Cart</a>
     <a href="/logout/">Logout</a>
 </nav>
+{% else %}
+<nav>
+    <a href="/login/">Login</a>
+    <a href="/register/">Register</a>
+</nav>
+{% endif %}
 
 <div class="container">
     {% block content %}
