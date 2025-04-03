@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm, AddressForm, CustomToyForm, ProductionReportForm, ToyEditForm, ReviewForm
-from .models import Address, User, UserContactDetail, Role, UserRole, Staff, ToyType, Toy, Order, OrderItem, Review, Complaint, Payment, ProductionReport
-from django import forms
+from .forms import CustomUserCreationForm, AddressForm, CustomToyForm, ProductionReportForm, ToyEditForm, ReviewForm, ToyReviewForm
+from .models import User, UserContactDetail, Role, UserRole, Staff, Toy, Order, OrderItem, ProductionReport, ToyReview
 from django.utils import timezone
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -10,6 +9,13 @@ from django.contrib import messages
 from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db.models import Sum
+
+def home_redirect(request):
+    if request.user.is_authenticated:
+        return redirect('toy_list')
+    else:
+        return redirect('register')
 
 def register(request):
     if request.method == 'POST':
@@ -77,7 +83,7 @@ def logout_view(request):
 
 @login_required
 def profile(request):
-    orders = Order.objects.filter(user=request.user).exclude(status='Draft').order_by('-order_date')
+    orders = Order.objects.filter(user=request.user).exclude(status='Draft').order_by('-order_date') # Order by most recent
     contact_details = UserContactDetail.objects.get(user=request.user)
 
     try:
@@ -97,16 +103,24 @@ def profile(request):
 def toy_list(request):
     toys_regular = Toy.objects.filter(is_customized=False)
     toys_custom = Toy.objects.filter(is_customized=True)
+    visible_toys = [toy for toy in toys_regular if not toy.is_bad()]
 
     try:
         staff = Staff.objects.get(user=request.user)
     except Staff.DoesNotExist:
         staff = None
 
+    for toy in toys_regular:
+        toy.user_review = ToyReview.objects.filter(user=request.user, toy=toy).first()
+
+    for toy in toys_custom:
+        toy.user_review = ToyReview.objects.filter(user=request.user, toy=toy).first()
+
     return render(request, 'core/toys.html', {
-        'toys_regular': toys_regular,
+        'toys_regular': visible_toys,
         'toys_custom': toys_custom,
-        'staff': staff
+        'staff': staff,
+        "star_range": range(5, 0, -1),
     })
 
 @login_required
@@ -120,7 +134,7 @@ def create_custom_toy(request):
                 name=data['name'],
                 specification=data['specification'],
                 size=data['size'],
-                cost_of_production='0.00',  # To be updated later
+                cost_of_production='0.00',  # Staff can update later
                 type=data['type'],
                 is_customized=True,
                 customized_by=request.user
@@ -138,9 +152,9 @@ def add_to_cart(request, toy_id):
     address = UserContactDetail.objects.get(user=request.user).address
 
     # Get or create an unplaced order for this user
-    order, created = Order.objects.get_or_create(
+    order = Order.objects.get_or_create(
         user=request.user,
-        status='Draft', # Unplaced order
+        status='Draft',
         defaults={'address': address}
     )
 
@@ -159,7 +173,7 @@ def add_to_cart(request, toy_id):
 def cart(request):
     order = Order.objects.filter(user=request.user, status='Draft').first()
     if order:
-        items = order.orderitem_set.select_related('toy')
+        items = order.orderitem_set.select_related('toy') # Joins Toy table to get toy details
 
         for item in items:
             item.subtotal = item.toy.price * item.quantity
@@ -217,7 +231,7 @@ def staff_list(request):
 
     staff_users = User.objects.filter(roles__role=staff_role).distinct()
     admin_users = User.objects.filter(roles__role=admin_role).distinct()
-    admin_roles = UserRole.objects.filter(role=admin_role).select_related('user', 'granted_by')
+    admin_roles = UserRole.objects.filter(role=admin_role).select_related('user', 'granted_by') # Join UserRole to get user and granted_by details
 
     return render(request, 'core/staff_list.html', {
         'staff_users': staff_users,
@@ -268,7 +282,6 @@ def production_report(request, toy_id):
 
     return render(request, 'core/production_report.html', {'form': form, toy: toy})
 
-@login_required
 @require_role('staff')
 def production_reports_list(request):
     all_reports = ProductionReport.objects.select_related('toy', 'expert', 'validated_by')
@@ -322,3 +335,42 @@ def leave_review(request, order_id):
         form = ReviewForm()
 
     return render(request, 'core/leave_review.html', {'form': form, 'order': order})
+
+@require_role('administrator')
+def sales_report(request):
+    today = now().date()
+
+    # Daily
+    daily_sales = Order.objects.filter(status='Placed', order_date=today)\
+        .aggregate(total=Sum('orderitem__toy__price'))
+
+    # Monthly
+    first_of_month = today.replace(day=1)
+    monthly_sales = Order.objects.filter(status='Placed', order_date__gte=first_of_month)\
+        .aggregate(total=Sum('orderitem__toy__price'))
+
+    # Yearly
+    first_of_year = today.replace(month=1, day=1)
+    yearly_sales = Order.objects.filter(status='Placed', order_date__gte=first_of_year)\
+        .aggregate(total=Sum('orderitem__toy__price'))
+
+    return render(request, 'core/sales_report.html', {
+        'daily_sales': daily_sales['total'] or 0,
+        'monthly_sales': monthly_sales['total'] or 0,
+        'yearly_sales': yearly_sales['total'] or 0,
+    })
+
+@login_required
+def review_toy(request, toy_id):
+    toy = get_object_or_404(Toy, id=toy_id)
+
+    if request.method == 'POST':
+        form = ToyReviewForm(request.POST)
+        if form.is_valid():
+            ToyReview.objects.create(
+                toy=toy,
+                user=request.user,
+                rating=form.cleaned_data['rating']
+            )
+            return redirect('toy_list')
+    return redirect('toy_list')

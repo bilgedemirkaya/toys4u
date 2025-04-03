@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Address, ProductionReport, ToyType, Toy, Review
+from .models import User, Address, ProductionReport, ToyType, Toy, Review, ToyReview
 
 class AddressForm(forms.ModelForm):
     class Meta:
@@ -50,6 +50,20 @@ class ReviewForm(forms.ModelForm):
         model = Review
         fields = ['rating', 'comments']
         widgets = {
-            'rating': forms.NumberInput(attrs={'min': 1, 'max': 5}),
+            'rating': forms.NumberInput(attrs={
+                'min': 1, 'max': 5, 'step': 1,
+                'placeholder': '1-5'
+            }),
             'comments': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Your feedback...'})
+        }
+
+class ToyReviewForm(forms.ModelForm):
+    class Meta:
+        model = ToyReview
+        fields = ['rating']
+        widgets = {
+            'rating': forms.NumberInput(attrs={
+                'min': 1, 'max': 5, 'step': 1,
+                'placeholder': '1-5'
+            })
         }

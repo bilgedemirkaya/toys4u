@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+{% block title %}Sales Report{% endblock %}
+
+{% block content %}
+<h2>📈 Sales Report</h2>
+
+<div style="margin-top: 30px;">
+    <p><strong>Daily Sales:</strong> ${{ daily_sales }}</p>
+    <p><strong>Monthly Sales:</strong> ${{ monthly_sales }}</p>
+    <p><strong>Yearly Sales:</strong> ${{ yearly_sales }}</p>
+</div>
+{% endblock %}

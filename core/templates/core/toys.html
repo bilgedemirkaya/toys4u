@@ -17,6 +17,22 @@
                 <p><strong>Rating:</strong> {{ toy.rating }}</p>
                 <p><strong>Size:</strong> {{ toy.size }}</p>
                 <p><strong>Cost:</strong> ${{ toy.price }} </p>
+                <form method="POST" action="{% url 'review_toy' toy.id %}" class="star-form">
+                    {% csrf_token %}
+                    <div class="star-rating" data-toy="{{ toy.id }}">
+                      {% for i in star_range %}
+                        <input
+                          type="radio"
+                          name="rating"
+                          value="{{ i }}"
+                          id="star{{ i }}-{{ toy.id }}"
+                          {% if toy.user_review and toy.user_review.rating == i %}checked{% endif %}
+                        >
+                        <label for="star{{ i }}-{{ toy.id }}">★</label>
+                      {% endfor %}
+                    </div>
+                  </form>
+                <p><strong>Average Rating:</strong> {{ toy.average_rating|floatformat:1 }}</p>
                 {% if staff.staff_type == "production_expert" %}
                     <div style="display: flex; gap: 10px;">
                     <a href="{% url 'production_report' toy.id %}" style="display: inline-block; text-align: center; margin-top: 8px; padding: 6px 10px; background-color: #007BFF; color: white; border-radius: 4px; text-align: center; width: 140px; text-decoration: none;">
@@ -57,6 +73,22 @@
                     {% endif %}
                 </p>
                 <p><strong>Customized by: {{ toy.customized_by }} </strong></p>
+                <form method="POST" action="{% url 'review_toy' toy.id %}" class="star-form">
+                    {% csrf_token %}
+                    <div class="star-rating" data-toy="{{ toy.id }}">
+                      {% for i in star_range %}
+                        <input
+                          type="radio"
+                          name="rating"
+                          value="{{ i }}"
+                          id="star{{ i }}-{{ toy.id }}"
+                          {% if toy.user_review and toy.user_review.rating == i %}checked{% endif %}
+                        >
+                        <label for="star{{ i }}-{{ toy.id }}">★</label>
+                      {% endfor %}
+                    </div>
+                  </form>
+                <p><strong>Average Rating:</strong> {{ toy.average_rating|floatformat:1 }}</p>
                 {% if staff.staff_type == "production_expert" %}
                 <div style="display: flex; gap: 10px;">
                 <a href="{% url 'production_report' toy.id %}" style="display: inline-block; text-align: center; margin-top: 8px; padding: 6px 10px; background-color: #007BFF; color: white; border-radius: 4px; text-align: center; width: 140px; text-decoration: none;">

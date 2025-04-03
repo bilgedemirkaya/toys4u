@@ -14,6 +14,9 @@ Toys4U is a Django-based web application for managing a toy manufacturing and sa
 - Staff dashboard with production reports and validation
 - Admin dashboard for managing staff roles
 - Order management and order history tracking
+- Users can review toys and see average ratings
+- System will hide bad rating toys
+- Managers can see daily, monthly and yearly reports of sales
 
 ---
 

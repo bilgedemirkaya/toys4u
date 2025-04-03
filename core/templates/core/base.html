@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Toys4U{% endblock %}</title>
     <style>
+
         body { font-family: Arial; background: #f0f0f0; margin: 0; padding: 0; }
         header { background-color: #4CAF50; color: white; padding: 16px; text-align: center; font-size: 26px; font-weight: bold; }
         nav { background: #333; padding: 10px; text-align: center; }
@@ -92,9 +93,30 @@
             75% { opacity: 1; }
             100% { opacity: 0; transform: translateY(-10px); }
         }
+
+        .star-rating {
+            direction: rtl;
+            display: inline-flex;
+            font-size: 1.5rem;
+        }
+
+            .star-rating input[type="radio"] {
+            display: none;
+        }
+
+            .star-rating label {
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+            .star-rating input[type="radio"]:checked ~ label,
+            .star-rating label:hover,
+            .star-rating label:hover ~ label {
+            color: gold;
+        }
 </style>
 
-    </style>
 </head>
 <body>
 
@@ -114,13 +136,13 @@
     <a href="/toys/">Toys</a>
     <a href="/cart/">Cart</a>
 {% if is_staff %}
-    <a href="/staff/reports/">Reports</a>
+    <a href="/staff/reports/">Production Reports</a>
 {% endif %}
 {% if is_admin %}
     <a href="/staff-list/">Manage Staff</a>
+    <a href="{% url 'sales_report' %}">Sales Reports</a>
 {% endif %}
 <a href="/logout/">Logout</a>
-
 </nav>
 
 
@@ -138,3 +160,12 @@
 
 </body>
 </html>
+
+<script>
+    document.querySelectorAll('.star-form input[type="radio"]').forEach(radio => {
+      radio.addEventListener('change', function () {
+        const form = this.closest('form');
+        if (form) form.submit();
+      });
+    });
+  </script>

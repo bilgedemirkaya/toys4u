@@ -5,7 +5,7 @@ from .views import logout_view
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/toys/', permanent=False), name='home'),
+    path('', views.home_redirect, name='home'),
     path('register/', views.register, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('profile/', views.profile, name='profile'),
@@ -25,4 +25,6 @@ urlpatterns = [
     path('staff/reports/', views.production_reports_list, name='production_reports_list'),
     path('staff/edit-toy/<int:toy_id>/', views.edit_toy, name='edit_toy'),
     path('order/<int:order_id>/review/', views.leave_review, name='leave_review'),
+    path('staff/sales-report/', views.sales_report, name='sales_report'),
+    path('review-toy/<int:toy_id>/', views.review_toy, name='review_toy'),
 ]

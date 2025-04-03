@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models import Avg
 
 # -------------------------------
 # Custom User with address ref
@@ -85,6 +86,16 @@ class Toy(models.Model):
     customized_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='toys_created')
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
 
+    def average_rating(self):
+        return self.toy_reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+
+    def is_bad(self):
+        review_count = self.toy_reviews.count()
+
+        if review_count == 0:
+            return False
+
+        return self.average_rating() < 2.5
 # -------------------------------
 # Orders
 # -------------------------------
@@ -114,6 +125,19 @@ class Review(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField()
     comments = models.TextField(blank=True)
+
+
+# -------------------------------
+# ToyReview
+# -------------------------------
+class ToyReview(models.Model):
+    toy = models.ForeignKey(Toy, on_delete=models.CASCADE, related_name='toy_reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    rating = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Review for {self.toy.name} by {self.user.username}"
 
 # -------------------------------
 # Complaint
