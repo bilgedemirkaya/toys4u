@@ -85,6 +85,7 @@ class Toy(models.Model):
     specification = models.TextField(blank=True, null=True, help_text="Custom specifications for the toy")
     customized_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='toys_created')
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
     def average_rating(self):
         return self.toy_reviews.aggregate(avg=Avg('rating'))['avg'] or 0

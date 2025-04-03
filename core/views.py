@@ -101,8 +101,8 @@ def profile(request):
 
 @login_required
 def toy_list(request):
-    toys_regular = Toy.objects.filter(is_customized=False)
-    toys_custom = Toy.objects.filter(is_customized=True)
+    toys_regular = Toy.objects.filter(is_customized=False).order_by('-created_at')
+    toys_custom = Toy.objects.filter(is_customized=True).order_by('-created_at')
     visible_toys = [toy for toy in toys_regular if not toy.is_bad()]
 
     try:
@@ -152,10 +152,10 @@ def add_to_cart(request, toy_id):
     address = UserContactDetail.objects.get(user=request.user).address
 
     # Get or create an unplaced order for this user
-    order = Order.objects.get_or_create(
-        user=request.user,
-        status='Draft',
-        defaults={'address': address}
+    order, created = Order.objects.get_or_create(
+    user=request.user,
+    status='Draft',
+    defaults={'address': address}
     )
 
     # Check if toy already in cart
@@ -165,7 +165,6 @@ def add_to_cart(request, toy_id):
         item.save()
 
         messages.success(request, f"'{toy.name}' was added to your cart.")
-
 
     return redirect('cart')
 
