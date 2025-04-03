@@ -371,5 +371,10 @@ def review_toy(request, toy_id):
                 user=request.user,
                 rating=form.cleaned_data['rating']
             )
+            # Update toy's rating
+            toy.rating = toy.average_rating()
+            toy.save()
+            messages.success(request, "Thank you for your review!")
+
             return redirect('toy_list')
     return redirect('toy_list')
